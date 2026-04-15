@@ -1,15 +1,15 @@
-raw_line = LOAD 'bai_thuc_hanh/hotel-review.csv' USING TextLoader() AS (line:chararray);
+raw_line = LOAD 'hotel-review.csv' USING TextLoader() AS (line:chararray);
 
 parsed = FOREACH raw_line GENERATE
     REGEX_EXTRACT(line, '^(\\d+);(.*);([^;]+);([^;]+);([^;]+)$', 1) AS id,
     REGEX_EXTRACT(line, '^(\\d+);(.*);([^;]+);([^;]+);([^;]+)$', 2) AS review,
-    REGEX_EXTRACT(line, '^(\\d+);(.*);([^;]+);([^;]+);([^;]+)$', 3) AS aspect,
-    REGEX_EXTRACT(line, '^(\\d+);(.*);([^;]+);([^;]+);([^;]+)$', 4) AS category,
+    REGEX_EXTRACT(line, '^(\\d+);(.*);([^;]+);([^;]+);([^;]+)$', 3) AS category,
+    REGEX_EXTRACT(line, '^(\\d+);(.*);([^;]+);([^;]+);([^;]+)$', 4) AS aspect,
     REGEX_EXTRACT(line, '^(\\d+);(.*);([^;]+);([^;]+);([^;]+)$', 5) AS sentiment;
 
 data = FILTER parsed BY id IS NOT NULL;
 
-stop_raw = LOAD 'bai_thuc_hanh/stopwords.txt' USING PigStorage('\n') AS (stopword:chararray);
+stop_raw = LOAD 'stopwords.txt' USING PigStorage('\n') AS (stopword:chararray);
 stopwords = DISTINCT (FOREACH stop_raw GENERATE TRIM(LOWER(stopword)) AS stopword);
 
 normalized = FOREACH data GENERATE
@@ -25,12 +25,14 @@ tokens = FOREACH normalized GENERATE
 tokens_non_empty = FILTER tokens BY word IS NOT NULL AND TRIM(word) != '';
 
 joined = JOIN tokens_non_empty BY word LEFT OUTER, stopwords BY stopword;
+
 clean_tokens = FOREACH (FILTER joined BY stopwords::stopword IS NULL) GENERATE
     tokens_non_empty::category AS category,
     tokens_non_empty::sentiment AS sentiment,
     tokens_non_empty::word AS word;
 
 pos = FILTER clean_tokens BY sentiment == 'positive';
+
 pos_word_count = FOREACH (GROUP pos BY (category, word)) GENERATE
     FLATTEN(group) AS (category, word),
     COUNT(pos) AS freq;
@@ -42,6 +44,7 @@ pos_top5_by_category = FOREACH (GROUP pos_word_count BY category) {
 };
 
 neg = FILTER clean_tokens BY sentiment == 'negative';
+
 neg_word_count = FOREACH (GROUP neg BY (category, word)) GENERATE
     FLATTEN(group) AS (category, word),
     COUNT(neg) AS freq;
