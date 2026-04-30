@@ -4,8 +4,8 @@ from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("Bai5").getOrCreate()
 sc = spark.sparkContext
 ratings_rdd = load_ratings(sc)
-users_rdd = load_users()
-occupation_rdd = load_occupations()
+users_rdd = load_users(sc)
+occupation_rdd = load_occupations(sc)
 
 ratings_by_user_rdd = ratings_rdd.map(lambda x: (x[0], x[2]))
 user_occid_rdd = users_rdd.map(lambda x: (x[0], x[3]))

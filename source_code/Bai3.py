@@ -5,7 +5,7 @@ spark = SparkSession.builder.appName("Bai3").getOrCreate()
 sc = spark.sparkContext
 movies_rdd = load_movies(sc)
 ratings_rdd = load_ratings(sc)
-users_rdd = load_users()
+users_rdd = load_users(sc)
 
 movie_title_rdd = movies_rdd.map(lambda x: (x[0], x[1]))
 user_gender_rdd = users_rdd.map(lambda x: (x[0], x[1]))

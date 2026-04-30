@@ -18,7 +18,7 @@ def age_to_group(age):
 
 movies_rdd = load_movies(sc)
 ratings_rdd = load_ratings(sc)
-users_rdd = load_users()
+users_rdd = load_users(sc)
 
 movie_title_rdd = movies_rdd.map(lambda x: (x[0], x[1]))
 user_age_group_rdd = users_rdd.map(lambda x: (x[0], age_to_group(x[2])))
